@@ -109,12 +109,15 @@
             headers: { 'Content-Type': 'image/jpeg' },
             body: blob
           });
-          const data = await res.json().catch(() => ({}));
+          const text = await res.text();
+          let data = {};
+          try { data = JSON.parse(text); } catch (e) {}
           if (res.ok && data.ok) {
             statusEl.textContent = '✅ 上传成功，电脑端即将显示照片。';
             statusEl.className = 'ok';
           } else {
-            throw new Error(data.error || '上传失败');
+            const detail = data.error || (text ? text.slice(0, 120) : '');
+            throw new Error(detail || ('服务器返回 ' + res.status));
           }
         } catch (e) {
           statusEl.textContent = '上传失败：' + (e.message || '网络错误');

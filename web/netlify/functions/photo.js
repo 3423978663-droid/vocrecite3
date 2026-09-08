@@ -10,6 +10,13 @@ function text(statusCode, body, headers) {
 function getId(event) {
   const q = event.queryStringParameters || {};
   if (q.id && /^[A-Za-z0-9-]{1,64}$/.test(q.id)) return q.id;
+  // 优先解析客户端实际请求的原始 URL（不依赖 Netlify 重写后的路径）
+  try {
+    const u = new URL(event.rawUrl || '');
+    const segs = u.pathname.split('/').filter(Boolean);
+    const last = decodeURIComponent(segs[segs.length - 1] || '');
+    if (last && /^[A-Za-z0-9-]{1,64}$/.test(last)) return last;
+  } catch (e) {}
   const raw = decodeURIComponent(String(event.path || '').split('?')[0]);
   const segs = raw.split('/').filter(Boolean);
   const last = segs[segs.length - 1];

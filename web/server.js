@@ -70,9 +70,12 @@ function sendText(res, status, text) {
 
 function getLanIP() {
   const ifaces = os.networkInterfaces();
-  for (const name of Object.keys(ifaces)) {
-    for (const iface of ifaces[name]) {
-      if (iface.family === 'IPv4' && !iface.internal) {
+  const names = Object.keys(ifaces);
+  const preferred = names.filter((n) => /^(en|eth|wlan|wi-fi)/i.test(n)).sort();
+  const order = preferred.concat(names.filter((n) => !preferred.includes(n)));
+  for (const name of order) {
+    for (const iface of ifaces[name] || []) {
+      if (iface.family === 'IPv4' && !iface.internal && !String(iface.address).startsWith('169.254.')) {
         return iface.address;
       }
     }
